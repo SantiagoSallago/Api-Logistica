@@ -3,7 +3,7 @@ const app = express();
 const port = 3000;
 
 // MiddLeware para parsear el cuerpo de las solicitudes como JSON
-app.get('/Usuarios', (req, res) => {
+app.get('/usuarios', (req, res) => {
     res.json([
         { id: 1, nombre: 'Juan Carlo', email : 'juancarlo@gmail.com', password: '123456' },
         { id: 2, nombre: 'Santiago Martínez', email : 'santiagomartinez@gmail.com', password: '123456' },
@@ -31,6 +31,9 @@ app.get('/Usuarios', (req, res) => {
 // ENdPoint GET para obtener los usuarios por ID
 app.get('/usuarios/:id', (req , res) => {
     const id = req.params.id;
+    if (id === '0') {  // Supongamos que el ID 0 no existe
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
     // Aquí Normalmente se buscaría el usuario en una base de datos
     res.json({ id, nombre: 'Juan Carlo', email : 'juancarlo@gmail.com', password: '123456' });
 });
@@ -48,4 +51,10 @@ app.put('/usuarios/:id', (req, res) => {
     const {nombre, email, password} = req.body;
     // Aquí se actualizaría el usuario en la base de datos
     res.json({id, nombre, email, password})
+});
+// Endpoint DELETE para eliminar un usuario
+app.delete('/usuarios/:id', (req, res) => {
+    const id = req.params.id;
+    // Aquí se eliminaría el usuario de la base de datos
+    res.status(204).send(); // Respuesta exitosa sin contenido
 });
