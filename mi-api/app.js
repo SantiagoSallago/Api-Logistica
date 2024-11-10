@@ -1,60 +1,90 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const connection = require('./db');
+
 const app = express();
 const port = 3000;
 
-// MiddLeware para parsear el cuerpo de las solicitudes como JSON
+// Middleware para parsear el cuerpo de las solicitudes como JSON
+app.use(bodyParser.json());
+
+// Endpoint GET para obtener todos los usuarios
 app.get('/usuarios', (req, res) => {
-    res.json([
-        { id: 1, nombre: 'Juan Carlo', email : 'juancarlo@gmail.com', password: '123456' },
-        { id: 2, nombre: 'Santiago Martínez', email : 'santiagomartinez@gmail.com', password: '123456' },
-        { id: 3, nombre: 'Pepe Argento', email : 'pepeArgento@gmail.com', password: '123456' },
-        { id: 4, nombre: 'Luis Miguel', email : 'luismiguel@gmail.com', password: '123456' },
-        { id: 5, nombre: 'Maria de la Paz', email : 'mariadelapaz@gmail.com', password: '123456' },
-        { id: 6, nombre: 'Juan Travolta', email : 'juantravolta@gmail.com', password: '123456' },
-        { id: 7, nombre: 'Carlos enrique', email : 'carlosenrique@gmail.com', password: '123456' },
-        { id: 8, nombre: 'Luis Maria', email : 'luismaria@gmail.com', password: '123456' },
-        { id: 9, nombre: 'Maria luisa', email : 'marialuisa@gmail.com', password: '123456' },
-        { id: 10, nombre: 'Juan anastasio', email : 'juananastasio@gmail.com', password: '123456' },
-        { id: 11, nombre: 'Carlos calito', email : 'carloscalito@gmail.com', password: '123456' },
-        { id: 12, nombre: 'Luis luisito', email : 'luisluisito@gmail.com', password: '123456' },
-        { id: 13, nombre: 'Maria marianez', email : 'mariamarianez@gmail.com', password: '123456' },
-        { id: 14, nombre: 'Juan junior', email : 'juanjunior@gmail.com', password: '123456' },
-        { id: 15, nombre: 'Carlos casares', email : 'carloscasares@gmail.com', password: '123456' },
-        { id: 16, nombre: 'Luis Fernandez', email : 'luisfernandez@gmail.com', password: '123456' },
-        { id: 17, nombre: 'Maria Fernandez', email : 'Mariafernandez@gmail.com', password: '123456' },
-        { id: 18, nombre: 'Juan Fernandez', email : 'Juanfernandez@gmail.com', password: '123456' },
-        { id: 19, nombre: 'Carlos Fernandez', email : 'Carlosfernandez@gmail.com', password: '123456' },
-        { id: 20, nombre: 'Luis Fernandez', email : 'luisfernandez@gmail.com', password: '123456' },
-    ]); 
-});
-
-// ENdPoint GET para obtener los usuarios por ID
-app.get('/usuarios/:id', (req , res) => {
-    const id = req.params.id;
-    if (id === '0') {  // Supongamos que el ID 0 no existe
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+  connection.query('SELECT * FROM usuarios', (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error al obtener los usuarios' });
     }
-    // Aquí Normalmente se buscaría el usuario en una base de datos
-    res.json({ id, nombre: 'Juan Carlo', email : 'juancarlo@gmail.com', password: '123456' });
+    res.json(results);
+  });
 });
 
-// Endpoint POST para crear un usuario
+// Endpoint GET para obtener un usuario por ID
+app.get('/usuarios/:id', (req, res) => {
+  const id = req.params.id;
+  connection.query('SELECT * FROM usuarios WHERE id = ?', [id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error al obtener el usuario' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.json(results[0]);
+  });
+});
+
+// Endpoint POST para crear un nuevo usuario
 app.post('/usuarios', (req, res) => {
-    const {nombre} = req.body;
-    // Aquí se crearía el usuario en la base de datos
-    res.status(201).json({id: 21,nombre, email, password})
+  const { nombre, email, password } = req.body;
+  const query = 'INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)';
+  connection.query(query, [nombre, email, password], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error al crear el usuario' });
+    }
+    res.status(201).json({
+      id: results.insertId,
+      nombre,
+      email,
+      password
+    });
+  });
 });
 
-// Endpont PUT para actualizar un usuario 
+// Endpoint PUT para actualizar un usuario
 app.put('/usuarios/:id', (req, res) => {
-    const id = req.params.id;
-    const {nombre, email, password} = req.body;
-    // Aquí se actualizaría el usuario en la base de datos
-    res.json({id, nombre, email, password})
+  const id = req.params.id;
+  const { nombre, email, password } = req.body;
+  const query = 'UPDATE usuarios SET nombre = ?, email = ?, password = ? WHERE id = ?';
+  connection.query(query, [nombre, email, password, id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error al actualizar el usuario' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.json({ id, nombre, email, password });
+  });
 });
+
 // Endpoint DELETE para eliminar un usuario
 app.delete('/usuarios/:id', (req, res) => {
-    const id = req.params.id;
-    // Aquí se eliminaría el usuario de la base de datos
-    res.status(204).send(); // Respuesta exitosa sin contenido
+  const id = req.params.id;
+  const query = 'DELETE FROM usuarios WHERE id = ?';
+  connection.query(query, [id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Error al eliminar el usuario' });
+    }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.status(204).send();
+  });
+});
+
+app.listen(port, () => {
+  console.log(`Servidor escuchando en http://localhost:${port}`);
 });
