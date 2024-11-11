@@ -36,9 +36,9 @@ app.get('/usuarios/:id', (req, res) => {
 
 // Endpoint POST para crear un nuevo usuario
 app.post('/usuarios', (req, res) => {
-  const { nombre, email, password } = req.body;
-  const query = 'INSERT INTO usuarios (nombre, email, password) VALUES (?, ?, ?)';
-  connection.query(query, [nombre, email, password], (err, results) => {
+  const { nombre, correo, edad } = req.body;
+  const query = 'INSERT INTO usuarios (nombre, correo, password) VALUES (?, ?, ?)';
+  connection.query(query, [nombre, correo, password], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Error al crear el usuario' });
@@ -46,8 +46,8 @@ app.post('/usuarios', (req, res) => {
     res.status(201).json({
       id: results.insertId,
       nombre,
-      email,
-      password
+      correo,
+      edad
     });
   });
 });
@@ -55,9 +55,9 @@ app.post('/usuarios', (req, res) => {
 // Endpoint PUT para actualizar un usuario
 app.put('/usuarios/:id', (req, res) => {
   const id = req.params.id;
-  const { nombre, email, password } = req.body;
-  const query = 'UPDATE usuarios SET nombre = ?, email = ?, password = ? WHERE id = ?';
-  connection.query(query, [nombre, email, password, id], (err, results) => {
+  const { nombre, correo, edad } = req.body;
+  const query = 'UPDATE usuarios SET nombre = ?, correo = ?, password = ? WHERE id = ?';
+  connection.query(query, [nombre, correo, password, id], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Error al actualizar el usuario' });
@@ -65,7 +65,7 @@ app.put('/usuarios/:id', (req, res) => {
     if (results.affectedRows === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
-    res.json({ id, nombre, email, password });
+    res.json({ id, nombre, correo, edad });
   });
 });
 
