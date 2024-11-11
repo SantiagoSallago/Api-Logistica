@@ -37,8 +37,8 @@ app.get('/usuarios/:id', (req, res) => {
 // Endpoint POST para crear un nuevo usuario
 app.post('/usuarios', (req, res) => {
   const { nombre, correo, edad } = req.body;
-  const query = 'INSERT INTO usuarios (nombre, correo, password) VALUES (?, ?, ?)';
-  connection.query(query, [nombre, correo, password], (err, results) => {
+  const query = 'INSERT INTO usuarios (nombre, correo, edad) VALUES (?, ?, ?)';
+  connection.query(query, [nombre, correo, edad], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Error al crear el usuario' });
@@ -56,8 +56,8 @@ app.post('/usuarios', (req, res) => {
 app.put('/usuarios/:id', (req, res) => {
   const id = req.params.id;
   const { nombre, correo, edad } = req.body;
-  const query = 'UPDATE usuarios SET nombre = ?, correo = ?, password = ? WHERE id = ?';
-  connection.query(query, [nombre, correo, password, id], (err, results) => {
+  const query = 'UPDATE usuarios SET nombre = ?, correo = ?, edad = ? WHERE id = ?';
+  connection.query(query, [nombre, correo, edad, id], (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: 'Error al actualizar el usuario' });
